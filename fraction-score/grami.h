@@ -136,20 +136,45 @@ int GraMi::initialize()
         }
     }
 
-    for (auto it = init_pattern_map.begin(); it != init_pattern_map.end(); )
+    // prune infrequent hashedEdges
+    for (auto it = pruned_graph.hashedEdges.begin(); it != pruned_graph.hashedEdges.end();) {
+    if (it->second.candA.size() < nsupport_ || it->second.candB.size() < nsupport_)
     {
-        auto &pattern = *(it->second);
-        if (frequency(pattern) < nsupport_)
+        it = pruned_graph.hashedEdges.erase(it);
+    }
+    else
+    {
+        double sup_a = 0;
+        for (VertexID v: it->second.candA)
         {
-            delete it->second->prog;
-            delete it->second;
-            it = init_pattern_map.erase(it);
+            vLabel label = it->first.to_label;
+            sup_a += pruned_graph.vtx_frac[v][label];
         }
-        else
+        if (sup_a < nsupport_)
         {
-            it++;
-            found++;
+            it = pruned_graph.hashedEdges.erase(it);
+            continue;
         }
+        double sup_b = 0;
+        for (VertexID v: it->second.candB)
+        {
+            vLabel label = it->first.from_label;
+            sup_b += pruned_graph.vtx_frac[v][label];
+        }
+        if (sup_b < nsupport_)
+        {
+            it = pruned_graph.hashedEdges.erase(it);
+            continue;
+        }
+
+        // ADD THIS:
+        cout << "[True Fraction-Score] label " << it->first.from_label
+             << " --(edge label " << it->first.edge_label << ")--> label " << it->first.to_label
+             << "   sup_a=" << sup_a << " sup_b=" << sup_b
+             << "   Fraction-Score=" << std::min(sup_a, sup_b) << endl;
+
+        ++it;
+    }
     }
 
     for (auto it = init_pattern_map.begin(); it != init_pattern_map.end(); ++it)
