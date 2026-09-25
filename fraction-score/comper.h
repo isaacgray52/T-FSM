@@ -1184,6 +1184,9 @@ public:
                 cout << pattern->toString();
                 
                 // cout << tc->domain_matches[0].size() << " " <<  tc->domain_matches[1].size() << " " << tc->domain_matches[2].size() << endl;
+                for (ui i = 0; i < pattern->size(); ++i)
+                    cout << "domain[" << i << "] size = " << tc->domain_matches[i].size() << " ";
+                cout << endl;
                 cout << "~~~~~" << endl;
 #endif
             // }
